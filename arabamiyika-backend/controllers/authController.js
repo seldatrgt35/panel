@@ -8,7 +8,10 @@ exports.login = async (req, res) => {
 
     try {
         // Kullanıcıyı veritabanından bulma
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({
+            where: { email },
+            attributes: ['id', 'email', 'password']  // Gereksiz alanları dışarda bırakabilirsiniz
+        });
 
         if (!user) {
             return res.status(400).json({ message: 'Kullanıcı bulunamadı!' });
@@ -20,17 +23,22 @@ exports.login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Şifre hatalı!' });
         }
+        console.log('Veritabanına gönderilen email:', email);
+
+        const jwt = require('jsonwebtoken');
 
         // JWT token oluşturma
         const token = jwt.sign(
-            { userId: user.id },
-            process.env.JWT_SECRET_KEY, // Çevre değişkeni ile güvenlik sağlanır
-            { expiresIn: '1h' }
+            { userId: user.id, email: user.email },    // Payload
+            process.env.JWT_SECRET,                 // Çevresel değişkenden güvenli anahtar
+            { expiresIn: '1h' }                        // Token geçerlilik süresi
         );
 
+
+        // Token'ı kullanıcıya gönderme
         res.json({ token });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Sunucu hatası!' });
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Sunucu hatası!', details: error.message });
     }
 };

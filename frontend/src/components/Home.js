@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/api";
 
-export default function Dashboard() {
+export default function Home() {
     const navigate = useNavigate();
 
     useEffect(() => {

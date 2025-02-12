@@ -3,7 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const sequelize = require('./config/database');
-const authRoutes = require('./routes/auth');
+const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler'); // Örnek hata middleware'i
 
 dotenv.config(); // .env dosyasını yükle
@@ -16,7 +16,7 @@ app.use(cors()); // CORS politikası
 app.use(helmet()); // Güvenlik başlıkları ekler
 
 // Auth routes (Register / Login)
-app.use('/auth', authRoutes);
+app.use('/api', routes);
 
 // API genel hata yönetimi middleware'i
 app.use(errorHandler);
