@@ -1,36 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const dotenv = require('dotenv');
-const sequelize = require('./config/database');
-const routes = require('./routes');
-const errorHandler = require('./middleware/errorHandler'); // Örnek hata middleware'i
-
-dotenv.config(); // .env dosyasını yükle
+const routes = require('./routes'); // Import index.js, because we access all the routes from there
+const sequelize = require('./config/database'); // Sequelize bağlantısını import et
 
 const app = express();
 
-// Middleware'ler
-app.use(express.json()); // JSON gövdesini işlemek için
-app.use(cors()); // CORS politikası
-app.use(helmet()); // Güvenlik başlıkları ekler
+// Middleware
+app.use(express.json());
+app.use(cors());
 
-// Auth routes (Register / Login)
-app.use('/api', routes);
-
-// API genel hata yönetimi middleware'i
-app.use(errorHandler);
-
-// Veritabanı bağlantısı
-sequelize.sync()
-    .then(() => console.log('✅ Veritabanı Bağlantısı Başarılı'))
-    .catch(err => console.error('❌ Veritabanı Bağlantı Hatası:', err));
-
-// Ana route
+// Ana sayfa rotası (GET /)
 app.get('/', (req, res) => {
-    res.send('🚀 API Çalışıyor!');
+    res.send('Ana sayfaya hoş geldiniz!');
 });
 
-// Sunucuyu başlat
+// API rotalarını bağlama
+app.use('/api', routes);
+
+// Veritabanı senkronizasyonu
+sequelize.sync({ force: false })
+    .then(() => {
+        console.log('Veritabanı başarıyla senkronize edildi.');
+    })
+    .catch((error) => {
+        console.error('Veritabanı senkronizasyon hatası:', error);
+    });
+
+// Sunucuyu başlatma
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda çalışıyor`));
+app.listen(PORT, () => {
+    console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+});

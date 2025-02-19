@@ -1,44 +1,30 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const jwt = require('jwt-simple');
 const User = require('../models/User');
+require('dotenv').config();
 
-// Kullanıcı girişi
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Kullanıcıyı veritabanından bulma
-        const user = await User.findOne({
-            where: { email },
-            attributes: ['id', 'email', 'password']  // Gereksiz alanları dışarda bırakabilirsiniz
-        });
+        const user = await User.findOne({ where: { email } });
 
         if (!user) {
-            return res.status(400).json({ message: 'Kullanıcı bulunamadı!' });
+            return res.status(401).json({ error: 'Kullanıcı bulunamadı.' });
         }
 
-        // Şifreyi doğrulama
-        const isMatch = await bcrypt.compare(password, user.password);
-
+        const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            return res.status(400).json({ message: 'Şifre hatalı!' });
+            return res.status(401).json({ error: 'Geçersiz şifre.' });
         }
-        console.log('Veritabanına gönderilen email:', email);
 
-        const jwt = require('jsonwebtoken');
+        const payload = { id: user.id, email: user.email };
+        const token = jwt.encode(payload, process.env.JWT_SECRET);
 
-        // JWT token oluşturma
-        const token = jwt.sign(
-            { userId: user.id, email: user.email },    // Payload
-            process.env.JWT_SECRET,                 // Çevresel değişkenden güvenli anahtar
-            { expiresIn: '1h' }                        // Token geçerlilik süresi
-        );
-
-
-        // Token'ı kullanıcıya gönderme
         res.json({ token });
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ message: 'Sunucu hatası!', details: error.message });
+        res.status(500).json({ error: 'Sunucu hatası.' });
     }
 };
+
+module.exports = { login };

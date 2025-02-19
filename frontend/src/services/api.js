@@ -1,28 +1,34 @@
-const API_URL = "http://localhost:5000/api"; // Backend adresin
+const API_BASE_URL = "http://localhost:5000/api"; // Backend API URL'si
 
-export const login = async (email, password) => {
-    try {
-        const response = await fetch(`${API_URL}/auth/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-        });
+// Kullanıcı giriş fonksiyonu
+export const loginUser = async (email, password) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+    });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Giriş başarısız!");
-        }
-
-        localStorage.setItem("token", data.token); // Token'ı kaydet
-        return data;
-    } catch (error) {
-        throw error.message;
+    if (!response.ok) {
+        throw new Error("Giriş başarısız! Kullanıcı adı veya şifre yanlış.");
     }
+
+    return response.json(); // Token döner
 };
 
-export const logout = () => {
-    localStorage.removeItem("token");
+// Kullanıcı profil bilgisi fonksiyonu
+export const fetchUserProfile = async (token) => {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Kullanıcı bilgileri alınamadı.");
+    }
+
+    return response.json(); // Kullanıcı bilgisi döner
 };
